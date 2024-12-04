@@ -5,31 +5,25 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/GDA35/ECOM/config"
+	"github.com/GDA35/ECOM/cfg"
+	_ "github.com/lib/pq"
 )
 
-type PostgresDB struct {
+type Database struct {
 	Conn *sql.DB
 }
 
-func NewPostgresDB(cfg *config.Config) (*PostgresDB, error) {
-	connStr := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
-		cfg.DB.Host, cfg.DB.Port, cfg.DB.User, cfg.DB.Password, cfg.DB.Name, cfg.DB.SSLMode)
-
-	db, err := sql.Open("postgres", connStr)
+func NewDatabase(cfg *cfg.Config) (*Database, error) {
+	conn, err := sql.Open("postgres", cfg.ConnectionString())
 	if err != nil {
-		return nil, fmt.Errorf("ошибка при открытии соединения с базой данных: %v", err)
+		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
-	if err := db.Ping(); err != nil {
-		return nil, fmt.Errorf("ошибка при подключении к базе данных: %v", err)
-	}
-
-	log.Println("Успешное подключение к базе данных PostgreSQL")
-
-	return &PostgresDB{Conn: db}, nil
+	return &Database{Conn: conn}, nil
 }
 
-func (p *PostgresDB) Close() error {
-	return p.Conn.Close()
+func (db *Database) Close() {
+	if err := db.Conn.Close(); err != nil {
+		log.Println("failed to close database connection:", err)
+	}
 }
