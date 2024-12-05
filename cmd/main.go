@@ -10,6 +10,7 @@ import (
 )
 
 func main() {
+
 	// Создание конфигурации
 	config := cfg.NewConfig("localhost", "5432", "postgres", "Lbvjy5102006", "ecom", "disable")
 
@@ -32,6 +33,7 @@ func main() {
 	if err := server.Run(); err != nil {
 		log.Fatal("Ошибка при запуске сервера API:", err)
 	}
+
 }
 
 func initStorage(db *sql.DB) {

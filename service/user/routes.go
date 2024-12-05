@@ -2,7 +2,9 @@ package user
 
 import (
 	"fmt"
+	"log"
 	"net/http"
+	"os"
 
 	"github.com/GDA35/ECOM/service/auth"
 	"github.com/GDA35/ECOM/types"
@@ -24,7 +26,46 @@ func (h *Handler) RegisterRoutes(router *mux.Router) {
 	router.HandleFunc("/register", h.handleRegister).Methods("POST")
 }
 
-func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {}
+func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
+	//get JSON payload
+	var payload types.LoginUserPayload
+	err := utils.ParseJSON(r, &payload)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+	}
+
+	//validate payload
+	if err := utils.Validate.Struct(payload); err != nil {
+		errors := err.(validator.ValidationErrors)
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid payload: %s", errors.Error()))
+		return
+	}
+
+	u, err := h.store.GetUserByEmail(payload.Email)
+	if err != nil {
+		utils.WriteError(w, http.StatusUnauthorized, fmt.Errorf("invalid email or password"))
+		return
+	}
+
+	if !auth.ComparePassword(u.Password, []byte(payload.Password)) {
+		utils.WriteError(w, http.StatusUnauthorized, fmt.Errorf("invalid email or password"))
+		return
+	}
+
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		log.Fatal("JWT_SECRET is not set")
+		return
+	}
+
+	token, err := auth.CreateJWT([]byte(secret), u.ID)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, map[string]string{"token": token})
+}
 
 func (h *Handler) handleRegister(w http.ResponseWriter, r *http.Request) {
 	//get JSON payload
