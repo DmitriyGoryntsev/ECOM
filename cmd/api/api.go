@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/GDA35/ECOM/service/cart"
+	"github.com/GDA35/ECOM/service/order"
 	"github.com/GDA35/ECOM/service/product"
 	"github.com/GDA35/ECOM/service/user"
 	"github.com/gorilla/mux"
@@ -35,6 +37,11 @@ func (s *APIServer) Run() error {
 	productStore := product.NewStore(s.db)
 	productsHandler := product.NewHandler(productStore)
 	productsHandler.RegisterRoutes(subrouter)
+
+	orderStore := order.NewStore(s.db)
+
+	cartHandler := cart.NewHandler(orderStore, productStore, userStore)
+	cartHandler.RegisterRoutes(subrouter)
 
 	log.Println("Server listening on", s.addr)
 

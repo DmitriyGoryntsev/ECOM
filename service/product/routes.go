@@ -61,8 +61,9 @@ func (h *Handler) handleGetProducts(w http.ResponseWriter, r *http.Request) {
 	// Получаем список продуктов из хранилища
 	products, err := h.store.GetAllProducts()
 	if err != nil {
-		// Если произошла ошибка, возвращаем статус 500 и сообщение об ошибке
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		// Логируем ошибку для отладки
+		fmt.Printf("Error retrieving products: %v\n", err)
+		http.Error(w, "Internal Server Error 1", http.StatusInternalServerError)
 		return
 	}
 
@@ -71,7 +72,7 @@ func (h *Handler) handleGetProducts(w http.ResponseWriter, r *http.Request) {
 
 	// Кодируем список продуктов в JSON и отправляем его в ответе
 	if err := utils.WriteJSON(w, http.StatusOK, products); err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		http.Error(w, "Internal Server Error 2", http.StatusInternalServerError)
 		return
 	}
 }
