@@ -13,7 +13,8 @@ import (
 )
 
 func main() {
-	config := cfg.NewConfig("localhost", "5432", "postgres", "Lbvjy5102006", "ecom", "disable")
+	// TODO password switch
+	config := cfg.NewConfig("localhost", "5432", "postgres", "????", "ecom", "disable")
 
 	database, err := db.NewDatabase(config)
 	if err != nil {
